@@ -28,6 +28,7 @@ impl Stadium {
         Self { models, robots }
     }
 
+
     pub fn draw(&mut self, drawer: &mut RaylibMode3D<'_, RaylibDrawHandle<'_>>) {
         self.draw_floor(drawer);
         self.draw_hoops(drawer);
