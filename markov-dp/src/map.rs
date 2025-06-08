@@ -1,10 +1,18 @@
 use raylib::prelude::*;
+use crate::{robot::Robot, TILE_SIZE};
 
-use crate::TILE_SIZE;
+#[derive(Debug)]
+pub enum Tile {
+    State,
+    Wall,
+    Danger,
+    Goal
+}
 
 #[derive(Debug)]
 pub struct Map {
     map: Vec<Vec<char>>,
+    robot: Robot
 }
 
 // '⚪' -> S
@@ -23,10 +31,10 @@ impl Map {
             vec!['⚪', '⚫', '⚪', '⚪', '⚫', '⚪', '⚪', '⚪' ], 
         ];
 
-        Self { map }
+        Self { map, robot: Robot::new() }
     }
 
-    pub fn draw(&self, drawer: &mut RaylibMode2D<'_, RaylibDrawHandle<'_>>) {
+    pub fn draw(&mut self, drawer: &mut RaylibMode2D<'_, RaylibDrawHandle<'_>>) {
 
         for (i, row) in self.map.iter().enumerate() {
             for (j, circle) in row.iter().enumerate() {
@@ -68,5 +76,7 @@ impl Map {
                 );
             }
         }
+
+        self.robot.draw(drawer);
     }
 }

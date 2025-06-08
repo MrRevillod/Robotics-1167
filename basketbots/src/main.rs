@@ -33,10 +33,6 @@ pub const RED_RING_POSITION: Vector3 = Vector3 {
 
 pub const PI: f32 = std::f32::consts::PI;
 
-fn dividir(a: i8, b: i8) -> f64 {
-    (a / b) as f64
-}
-
 fn main() {
     let (mut rlib, thread) = raylib::init()
         .size(950, 800)
