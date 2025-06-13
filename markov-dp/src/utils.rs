@@ -6,6 +6,7 @@ pub mod constants {
     pub const N_STATES: usize = N_ROWS * N_COLS;
     pub const PROBABILITIES: [f32; 3] = [0.8, 0.1, 0.1];
     pub const TILE_SIZE: f32 = 100.0;
+    pub const DISCOUNT_FACTORS: [f32; 4] = [0.86, 0.90, 0.94, 0.98];
 }
 
 use constants::TILE_SIZE;

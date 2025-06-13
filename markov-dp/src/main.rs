@@ -4,7 +4,7 @@ mod robot;
 mod status;
 mod utils;
 
-use crate::map::Map;
+use crate::{map::Map, utils::constants::DISCOUNT_FACTORS};
 use raylib::prelude::*;
 
 // la politica me dice que accion tomar en cada estado
@@ -24,6 +24,8 @@ fn main() {
     rlib.set_target_fps(60);
 
     let mut map = Map::new();
+
+    map.run_value_iteration(DISCOUNT_FACTORS[0]);
 
     let camera = Camera2D {
         target: Vector2::new(0.0, 0.0),

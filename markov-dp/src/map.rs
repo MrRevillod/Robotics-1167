@@ -59,4 +59,8 @@ impl Map {
 
         self.robot.draw(drawer);
     }
+
+    pub fn run_value_iteration(&mut self, discount_factor: f32) {
+        self.mdp.run_value_iteration(discount_factor);
+    }
 }

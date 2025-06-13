@@ -1,7 +1,5 @@
 use crate::status::{Status, StatusType};
-use crate::utils::constants::{N_COLS, N_ROWS, N_STATES, PROBABILITIES};
-
-pub mod analytics;
+use crate::utils::constants::{DISCOUNT_FACTORS, N_COLS, N_ROWS, N_STATES, PROBABILITIES};
 
 #[derive(Debug)]
 pub struct Mdp {
@@ -76,9 +74,52 @@ impl Mdp {
         matrices
     }
 
+    pub fn run_value_iteration(&mut self, discount_factor: f32) -> Vec<Vec<f32>> {
+        let mut q = vec![vec![0.0_f32; 4]; N_STATES];
+
+        let t = self.transition_matrix.clone();
+
+        for _ in 0..1000 {
+            for s in 0..N_STATES {
+                for a in 0..4 {
+                    let mut sum_sp = 0_f32;
+                    for s_ in 0..N_STATES {
+                        sum_sp += t[a][s][s_]
+                            * (self.map[s_ / N_COLS][s_ % N_COLS].reward
+                                + discount_factor
+                                    * q[s_].clone().into_iter().reduce(f32::max).unwrap_or(0.))
+                    }
+
+                    q[s][a] = sum_sp;
+                }
+            }
+        }
+
+        q
+    }
+
     pub fn gen_reward_vector(map: &Vec<Vec<Status>>) -> Vec<f32> {
         map.iter()
             .flat_map(|row| row.iter().map(|status| status.reward))
             .collect()
+    }
+
+    pub fn get_max_policy(&self, q_value_result: &Vec<Vec<f32>>) -> Vec<usize> {
+        let mut max_policy = vec![0; N_STATES];
+
+        for (i, row) in q_value_result.into_iter().enumerate() {
+            let max = row.clone().into_iter().reduce(f32::max).unwrap_or(0.);
+            let row_cloned = row.clone();
+            let max_index = row_cloned.iter().position(|x| *x == max).unwrap();
+
+            max_policy[i] = max_index.to_owned();
+        }
+
+        max_policy
+    }
+
+    pub fn solve(&mut self) -> Vec<usize> {
+        let q_value_iter_result = self.run_value_iteration(DISCOUNT_FACTORS[0]);
+        self.get_max_policy(&q_value_iter_result)
     }
 }
