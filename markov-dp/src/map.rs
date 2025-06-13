@@ -1,22 +1,18 @@
 use crate::{
-    TILE_SIZE,
+    mdp::Mdp,
     robot::Robot,
     status::{Status, StatusType},
+    utils::constants::*,
     utils::draw_status_tile,
 };
 
 use raylib::prelude::*;
 
-pub const N_ROWS: usize = 6;
-pub const N_COLS: usize = 8;
-pub const N_STATES: usize = N_ROWS * N_COLS;
-
-const PROBABILITIES: [f32; 3] = [0.8, 0.1, 0.1];
-
 #[derive(Debug)]
 pub struct Map {
     robot: Robot,
     map: Vec<Vec<Status>>,
+    mdp: Mdp,
 }
 
 impl Map {
@@ -37,71 +33,11 @@ impl Map {
             .map(|row| row.iter().map(|&key| Status::from(key)).collect())
             .collect();
 
-        Self { robot, map }
-    }
-
-    pub fn gen_transicion_matrix(&self) -> Vec<Vec<Vec<f32>>> {
-        // matrices[action][from][to]
-        let mut matrices = vec![
-            vec![vec![0.0; N_STATES]; N_STATES], // North
-            vec![vec![0.0; N_STATES]; N_STATES], // South
-            vec![vec![0.0; N_STATES]; N_STATES], // East
-            vec![vec![0.0; N_STATES]; N_STATES], // West
-        ];
-
-        // Direcciones: (di, dj)
-        let directions = [
-            [(-1, 0), (0, -1), (0, 1)], // North: principal, izquierda(W), derecha(E)
-            [(1, 0), (0, 1), (0, -1)],  // South: principal, izquierda(E), derecha(W)
-            [(0, 1), (-1, 0), (1, 0)],  // East: principal, izquierda(N), derecha(S)
-            [(0, -1), (1, 0), (-1, 0)], // West: principal, izquierda(S), derecha(N)
-        ];
-
-        for (i, row) in self.map.iter().enumerate() {
-            for (j, status) in row.iter().enumerate() {
-                let idx = i * N_COLS + j;
-
-                if status.r#type == StatusType::Wall {
-                    continue;
-                }
-
-                for (action, dirs) in directions.iter().enumerate() {
-                    let mut stay_prob = 0.0;
-
-                    for (k, (di, dj)) in dirs.iter().enumerate() {
-                        let ni = i as isize + di;
-                        let nj = j as isize + dj;
-
-                        if ni >= 0 && ni < N_ROWS as isize && nj >= 0 && nj < N_COLS as isize {
-                            let ni = ni as usize;
-                            let nj = nj as usize;
-
-                            let next_status = &self.map[ni][nj];
-                            let next_idx = ni * N_COLS + nj;
-
-                            if next_status.r#type == StatusType::Wall {
-                                stay_prob += PROBABILITIES[k];
-                            } else {
-                                matrices[action][idx][next_idx] += PROBABILITIES[k];
-                            }
-                        } else {
-                            stay_prob += PROBABILITIES[k];
-                        }
-                    }
-
-                    matrices[action][idx][idx] += stay_prob;
-                }
-            }
+        Self {
+            robot,
+            mdp: Mdp::new(map.clone()),
+            map,
         }
-
-        matrices
-    }
-
-    pub fn gen_reward_vector(&self) -> Vec<f32> {
-        self.map
-            .iter()
-            .flat_map(|row| row.iter().map(|status| status.reward))
-            .collect()
     }
 
     pub fn draw(&mut self, drawer: &mut RaylibMode2D<'_, RaylibDrawHandle<'_>>) {

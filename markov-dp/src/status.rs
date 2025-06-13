@@ -2,7 +2,7 @@ pub const GOAL: &str = "M";
 pub const DANGER_KEYS: [&str; 4] = ["P1", "P2", "P3", "P4"];
 pub const WALL_KEYS: [&str; 10] = ["O1", "O2", "O3", "O4", "O5", "O6", "O7", "O8", "O9", "O10"];
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Status {
     pub key: &'static str,
     pub r#type: StatusType,
@@ -27,7 +27,7 @@ impl From<&'static str> for Status {
     }
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub enum StatusType {
     Normal,
     Danger,

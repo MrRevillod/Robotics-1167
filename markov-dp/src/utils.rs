@@ -1,5 +1,14 @@
-use crate::TILE_SIZE;
 use raylib::prelude::{Color, RaylibDraw, RaylibDrawHandle, RaylibMode2D};
+
+pub mod constants {
+    pub const N_ROWS: usize = 6;
+    pub const N_COLS: usize = 8;
+    pub const N_STATES: usize = N_ROWS * N_COLS;
+    pub const PROBABILITIES: [f32; 3] = [0.8, 0.1, 0.1];
+    pub const TILE_SIZE: f32 = 100.0;
+}
+
+use constants::TILE_SIZE;
 
 pub fn draw_status_tile(
     drawer: &mut RaylibMode2D<'_, RaylibDrawHandle<'_>>,
