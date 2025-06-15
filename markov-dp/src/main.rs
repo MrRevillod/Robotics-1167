@@ -1,18 +1,32 @@
+mod core;
+mod graphics;
 mod map;
 mod mdp;
 mod robot;
-mod status;
-mod utils;
 
-use crate::{map::Map, utils::constants::DISCOUNT_FACTORS};
+use crate::core::Core;
 use raylib::prelude::*;
 
-// la politica me dice que accion tomar en cada estado
-// para eso es el algoritmo de valor iterativo -> politica optima
+pub const N_ROWS: usize = 6;
+pub const N_COLS: usize = 8;
+pub const N_STATES: usize = N_ROWS * N_COLS;
+pub const PROBABILITIES: [f32; 3] = [0.8, 0.1, 0.1];
+pub const TILE_SIZE: f32 = 100.0;
+pub const DISCOUNT_FACTORS: [f32; 4] = [0.86, 0.90, 0.94, 0.98];
 
-// lanzar random y armar rangos desde 0 a 1 (0.8, 0.1, 0.1)
+pub const SUCCESS_PROBS: [f32; 4] = [0.5, 0.7, 0.9, 0.9];
 
 fn main() {
+    println!("Iniciando simulaciones paralelas...");
+
+    let results = Core::run_parallel_simulation();
+
+    graphics::graphic(&results);
+
+    println!("Resultados de las simulaciones paralelas:");
+
+    let mut visual_core = Core::new(0);
+
     let (mut rlib, thread) = raylib::init()
         .size(800, 600)
         .title("MDP Robotics - INFO1167")
@@ -20,12 +34,7 @@ fn main() {
         .vsync()
         .build();
 
-    rlib.disable_cursor();
     rlib.set_target_fps(60);
-
-    let mut map = Map::new();
-
-    map.run_value_iteration(DISCOUNT_FACTORS[0]);
 
     let camera = Camera2D {
         target: Vector2::new(0.0, 0.0),
@@ -38,7 +47,7 @@ fn main() {
         let mut drawer = rlib.begin_drawing(&thread);
         drawer.clear_background(Color::DARKGRAY);
 
-        let mut mode2d = drawer.begin_mode2D(camera);
-        map.draw(&mut mode2d);
+        let mut drawer2d = drawer.begin_mode2D(camera);
+        visual_core.simulate(Some(&mut drawer2d));
     }
 }

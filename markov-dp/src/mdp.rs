@@ -1,23 +1,29 @@
-use crate::status::{Status, StatusType};
-use crate::utils::constants::{DISCOUNT_FACTORS, N_COLS, N_ROWS, N_STATES, PROBABILITIES};
+use crate::{
+    N_COLS, N_ROWS, N_STATES, PROBABILITIES,
+    map::{Map, StatusType},
+};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Mdp {
-    pub map: Vec<Vec<Status>>,
+    pub map: Map,
     pub transition_matrix: Vec<Vec<Vec<f32>>>,
+    pub q_values: Vec<Vec<f32>>,
 }
 
 impl Mdp {
-    pub fn new(map: Vec<Vec<Status>>) -> Self {
-        let transition_matrix = Mdp::gen_transicion_matrix(&map);
-
-        Self {
+    pub fn new(map: Map) -> Self {
+        let mut mdp = Self {
             map,
-            transition_matrix,
-        }
+            transition_matrix: vec![vec![vec![0.0; N_STATES]; N_STATES]; 4],
+            q_values: vec![vec![0.0; 4]; N_STATES],
+        };
+
+        mdp.build_transition_matrix();
+
+        mdp
     }
 
-    pub fn gen_transicion_matrix(map: &Vec<Vec<Status>>) -> Vec<Vec<Vec<f32>>> {
+    fn build_transition_matrix(&mut self) {
         // matrices[action][from][to]
         let mut matrices = vec![
             vec![vec![0.0; N_STATES]; N_STATES], // North
@@ -34,7 +40,7 @@ impl Mdp {
             [(0, -1), (1, 0), (-1, 0)], // West: principal, izquierda(S), derecha(N)
         ];
 
-        for (i, row) in map.iter().enumerate() {
+        for (i, row) in self.map.states.iter().enumerate() {
             for (j, status) in row.iter().enumerate() {
                 let idx = i * N_COLS + j;
 
@@ -53,7 +59,7 @@ impl Mdp {
                             let ni = ni as usize;
                             let nj = nj as usize;
 
-                            let next_status = &map[ni][nj];
+                            let next_status = &self.map.states[ni][nj];
                             let next_idx = ni * N_COLS + nj;
 
                             if next_status.r#type == StatusType::Wall {
@@ -71,10 +77,10 @@ impl Mdp {
             }
         }
 
-        matrices
+        self.transition_matrix = matrices;
     }
 
-    pub fn run_value_iteration(&mut self, discount_factor: f32) -> Vec<Vec<f32>> {
+    pub fn value_iteration(&mut self, discount_factor: f32) {
         let mut q = vec![vec![0.0_f32; 4]; N_STATES];
 
         let t = self.transition_matrix.clone();
@@ -85,7 +91,7 @@ impl Mdp {
                     let mut sum_sp = 0_f32;
                     for s_ in 0..N_STATES {
                         sum_sp += t[a][s][s_]
-                            * (self.map[s_ / N_COLS][s_ % N_COLS].reward
+                            * (self.map.states[s_ / N_COLS][s_ % N_COLS].reward
                                 + discount_factor
                                     * q[s_].clone().into_iter().reduce(f32::max).unwrap_or(0.))
                     }
@@ -95,19 +101,13 @@ impl Mdp {
             }
         }
 
-        q
+        self.q_values = q
     }
 
-    pub fn gen_reward_vector(map: &Vec<Vec<Status>>) -> Vec<f32> {
-        map.iter()
-            .flat_map(|row| row.iter().map(|status| status.reward))
-            .collect()
-    }
-
-    pub fn get_max_policy(&self, q_value_result: &Vec<Vec<f32>>) -> Vec<usize> {
+    pub fn get_max_policy(&mut self) -> Vec<usize> {
         let mut max_policy = vec![0; N_STATES];
 
-        for (i, row) in q_value_result.into_iter().enumerate() {
+        for (i, row) in self.q_values.iter().enumerate() {
             let max = row.clone().into_iter().reduce(f32::max).unwrap_or(0.);
             let row_cloned = row.clone();
             let max_index = row_cloned.iter().position(|x| *x == max).unwrap();
@@ -116,10 +116,5 @@ impl Mdp {
         }
 
         max_policy
-    }
-
-    pub fn solve(&mut self) -> Vec<usize> {
-        let q_value_iter_result = self.run_value_iteration(DISCOUNT_FACTORS[0]);
-        self.get_max_policy(&q_value_iter_result)
     }
 }
