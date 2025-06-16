@@ -15,7 +15,7 @@ pub struct Core {
 }
 
 impl Core {
-    pub fn new(discount_factor_id: usize) -> Self {
+    pub fn new(discount_factor_id: usize, success_prob: usize) -> Self {
         let map = Map::new();
         let mut mdp = Mdp::new(map.clone());
 
@@ -26,7 +26,7 @@ impl Core {
         let mut random = StdRng::from_os_rng();
 
         let initial_position = map.get_random_valid_position(&mut random);
-        let robot = Robot::new(initial_position);
+        let robot = Robot::new(initial_position, success_prob);
 
         Self {
             map,
@@ -43,28 +43,41 @@ impl Core {
         self.robot.set_position(new_position);
     }
 
-    pub fn run_parallel_simulation() -> Vec<Vec<f32>> {
+    pub fn run_parallel_simulation() -> Vec<Vec<Vec<f32>>> {
         let mut handles = vec![];
 
-        for i in 0..4 {
-            let handle = thread::spawn(move || {
-                let mut core = Core::new(i);
+        for success_prob in 0..4 {
+            for discount_factor in 0..4 {
+                let handle = thread::spawn(move || {
+                    let mut core = Core::new(discount_factor, success_prob);
 
-                while core.simulation_steps < 1000 {
-                    core.simulate(None);
-                }
+                    while core.simulation_steps < 1000 {
+                        core.simulate(None);
+                    }
 
-                core.rewards
-            });
+                    core.rewards
+                });
 
-            handles.push(handle);
+                handles.push(handle);
+            }
         }
 
-        let mut results = vec![];
+        // Recolectar todos los resultados primero
+        let all_results: Vec<Vec<f32>> = handles
+            .into_iter()
+            .map(|handle| handle.join().unwrap())
+            .collect();
 
-        for handle in handles.into_iter() {
-            let res = handle.join().unwrap();
-            results.push(res);
+        // Organizamos los resultados en la matriz 3D
+        // results[success_prob][discount_factor] = rewards
+        let mut results = vec![vec![vec![]; 4]; 4];
+        let mut result_index = 0;
+
+        for success_prob in 0..4 {
+            for discount_factor in 0..4 {
+                results[success_prob][discount_factor] = all_results[result_index].clone();
+                result_index += 1;
+            }
         }
 
         results

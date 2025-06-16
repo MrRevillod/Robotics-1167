@@ -1,16 +1,18 @@
 use raylib::prelude::*;
 
-use crate::{N_COLS, N_ROWS, TILE_SIZE, map::Map};
+use crate::{N_COLS, N_ROWS, SUCCESS_PROBABILITIES, TILE_SIZE, map::Map};
 
 #[derive(Debug)]
 pub struct Robot {
     position: Vector2,
+    success_prob: usize,
 }
 
 impl Robot {
-    pub fn new(start_position: Vector2) -> Self {
+    pub fn new(start_position: Vector2, success_prob: usize) -> Self {
         Self {
             position: start_position,
+            success_prob,
         }
     }
 
@@ -40,7 +42,7 @@ impl Robot {
         [norm_y, norm_x]
     }
 
-    fn calc_next_action(next_action: usize) -> (f32, f32) {
+    fn calc_next_action(&self, next_action: usize) -> (f32, f32) {
         let north = (0.0, -TILE_SIZE);
         let south = (0.0, TILE_SIZE);
         let east = (TILE_SIZE, 0.0);
@@ -54,12 +56,12 @@ impl Robot {
         ];
 
         let possible_actions = combinations[next_action];
-        let success_prob = 0.8;
+        let success_prob = SUCCESS_PROBABILITIES[self.success_prob] as f32;
 
         let choice = rand::random::<f32>();
 
         if choice <= success_prob {
-            possible_actions[0] // Acción principal
+            possible_actions[0]
         } else {
             match rand::random_bool(0.5) {
                 true => possible_actions[1],
@@ -76,7 +78,7 @@ impl Robot {
         }
 
         let next_action = policy[current_index];
-        let diff = Self::calc_next_action(next_action);
+        let diff = self.calc_next_action(next_action);
 
         let current_pos = self.get_position();
         let new_pos = Vector2 {

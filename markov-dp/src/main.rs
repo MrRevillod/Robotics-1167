@@ -12,9 +12,9 @@ pub const N_COLS: usize = 8;
 pub const N_STATES: usize = N_ROWS * N_COLS;
 pub const PROBABILITIES: [f32; 3] = [0.8, 0.1, 0.1];
 pub const TILE_SIZE: f32 = 100.0;
-pub const DISCOUNT_FACTORS: [f32; 4] = [0.86, 0.90, 0.94, 0.98];
 
-pub const SUCCESS_PROBS: [f32; 4] = [0.5, 0.7, 0.9, 0.9];
+pub const DISCOUNT_FACTORS: [f32; 4] = [0.86, 0.90, 0.94, 0.98];
+pub const SUCCESS_PROBABILITIES: [f32; 4] = [0.5, 0.7, 0.8, 0.9];
 
 fn main() {
     println!("Iniciando simulaciones paralelas...");
@@ -25,7 +25,7 @@ fn main() {
 
     println!("Resultados de las simulaciones paralelas:");
 
-    let mut visual_core = Core::new(0);
+    let mut visual_core = Core::new(0, 3);
 
     let (mut rlib, thread) = raylib::init()
         .size(800, 600)
