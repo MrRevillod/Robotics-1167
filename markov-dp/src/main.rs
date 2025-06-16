@@ -17,19 +17,26 @@ pub const DISCOUNT_FACTORS: [f32; 4] = [0.86, 0.90, 0.94, 0.98];
 pub const SUCCESS_PROBABILITIES: [f32; 4] = [0.5, 0.7, 0.8, 0.9];
 
 fn main() {
-    println!("Iniciando simulaciones paralelas...");
+    println!("🎯 MDP Robotics - Simulación Optimizada");
+    println!("=======================================\n");
 
-    let results = Core::run_parallel_simulation();
+    println!("🚀 Ejecutando simulación optimizada...");
+    let start_time = std::time::Instant::now();
+    let results = Core::run_simulation();
+    let duration = start_time.elapsed();
+    println!("⏱️  Simulación completada en: {:?}\n", duration);
 
+    println!("📈 Generando gráficos con los resultados...");
     graphics::graphic(&results);
 
-    println!("Resultados de las simulaciones paralelas:");
+    println!("✅ Gráficos generados en la carpeta analytics/");
+    println!("\n🎮 Iniciando visualización interactiva...");
 
     let mut visual_core = Core::new(0, 3);
 
     let (mut rlib, thread) = raylib::init()
         .size(800, 600)
-        .title("MDP Robotics - INFO1167")
+        .title("MDP Robotics - INFO1167 (Optimizado)")
         .msaa_4x()
         .vsync()
         .build();

@@ -1,6 +1,5 @@
 use std::{thread, time::Duration};
 
-use rand::{SeedableRng, rngs::StdRng};
 use raylib::prelude::*;
 
 use crate::{DISCOUNT_FACTORS, map::Map, mdp::Mdp, robot::Robot};
@@ -11,7 +10,6 @@ pub struct Core {
     pub robot: Robot,
     pub simulation_steps: u32,
     pub rewards: Vec<f32>,
-    random: StdRng,
 }
 
 impl Core {
@@ -23,9 +21,7 @@ impl Core {
 
         mdp.value_iteration(discount_factors[discount_factor_id]);
 
-        let mut random = StdRng::from_os_rng();
-
-        let initial_position = map.get_random_valid_position(&mut random);
+        let initial_position = map.get_random_valid_position();
         let robot = Robot::new(initial_position, success_prob);
 
         Self {
@@ -34,49 +30,55 @@ impl Core {
             robot,
             simulation_steps: 0,
             rewards: vec![],
-            random,
         }
     }
 
     pub fn reset_robot(&mut self) {
-        let new_position = self.map.get_random_valid_position(&mut self.random);
+        let new_position = self.map.get_random_valid_position();
         self.robot.set_position(new_position);
     }
 
-    pub fn run_parallel_simulation() -> Vec<Vec<Vec<f32>>> {
-        let mut handles = vec![];
+    pub fn run_simulation() -> Vec<Vec<Vec<f32>>> {
+        // Calcular la matriz de transición una sola vez
+        let map = Map::new();
+        let transition_matrix = Mdp::build_transition_matrix_static(&map);
 
-        for success_prob in 0..4 {
-            for discount_factor in 0..4 {
-                let handle = thread::spawn(move || {
-                    let mut core = Core::new(discount_factor, success_prob);
+        let mut results = vec![vec![vec![]; 4]; 4];
+        let discount_factors = DISCOUNT_FACTORS.to_vec();
 
-                    while core.simulation_steps < 1000 {
-                        core.simulate(None);
-                    }
-
-                    core.rewards
-                });
-
-                handles.push(handle);
-            }
+        // Crear MDPs para cada discount factor (solo 4 en lugar de 16)
+        let mut mdps = Vec::new();
+        for &discount_factor in &discount_factors {
+            let mut mdp = Mdp::new_with_transition_matrix(map.clone(), transition_matrix.clone());
+            mdp.value_iteration(discount_factor);
+            mdps.push(mdp);
         }
 
-        // Recolectar todos los resultados primero
-        let all_results: Vec<Vec<f32>> = handles
-            .into_iter()
-            .map(|handle| handle.join().unwrap())
-            .collect();
-
-        // Organizamos los resultados en la matriz 3D
-        // results[success_prob][discount_factor] = rewards
-        let mut results = vec![vec![vec![]; 4]; 4];
-        let mut result_index = 0;
-
+        // Ahora ejecutar simulaciones reutilizando los MDPs
         for success_prob in 0..4 {
             for discount_factor in 0..4 {
-                results[success_prob][discount_factor] = all_results[result_index].clone();
-                result_index += 1;
+                // Crear un robot para esta combinación específica
+                let initial_position = map.get_random_valid_position();
+                let mut robot = Robot::new(initial_position, success_prob);
+
+                let mut simulation_steps = 0;
+                let mut rewards = vec![];
+
+                // Ejecutar simulación directamente sin crear un Core completo
+                while simulation_steps < 1000 {
+                    robot.update(&mdps[discount_factor].get_max_policy(), &map);
+
+                    simulation_steps += 1;
+                    let robot_pos = robot.get_matricial_position();
+                    rewards.push(map.states[robot_pos[0]][robot_pos[1]].reward);
+
+                    if robot.get_position() == map.get_goal_position() {
+                        let new_position = map.get_random_valid_position();
+                        robot.set_position(new_position);
+                    }
+                }
+
+                results[success_prob][discount_factor] = rewards;
             }
         }
 

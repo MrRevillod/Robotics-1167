@@ -23,7 +23,15 @@ impl Mdp {
         mdp
     }
 
-    fn build_transition_matrix(&mut self) {
+    pub fn new_with_transition_matrix(map: Map, transition_matrix: Vec<Vec<Vec<f32>>>) -> Self {
+        Self {
+            map,
+            transition_matrix,
+            q_values: vec![vec![0.0; 4]; N_STATES],
+        }
+    }
+
+    pub fn build_transition_matrix_static(map: &Map) -> Vec<Vec<Vec<f32>>> {
         // matrices[action][from][to]
         let mut matrices = vec![
             vec![vec![0.0; N_STATES]; N_STATES], // North
@@ -40,7 +48,7 @@ impl Mdp {
             [(0, -1), (1, 0), (-1, 0)], // West: principal, izquierda(S), derecha(N)
         ];
 
-        for (i, row) in self.map.states.iter().enumerate() {
+        for (i, row) in map.states.iter().enumerate() {
             for (j, status) in row.iter().enumerate() {
                 let idx = i * N_COLS + j;
 
@@ -59,7 +67,7 @@ impl Mdp {
                             let ni = ni as usize;
                             let nj = nj as usize;
 
-                            let next_status = &self.map.states[ni][nj];
+                            let next_status = &map.states[ni][nj];
                             let next_idx = ni * N_COLS + nj;
 
                             if next_status.r#type == StatusType::Wall {
@@ -77,7 +85,11 @@ impl Mdp {
             }
         }
 
-        self.transition_matrix = matrices;
+        matrices
+    }
+
+    fn build_transition_matrix(&mut self) {
+        self.transition_matrix = Self::build_transition_matrix_static(&self.map);
     }
 
     pub fn value_iteration(&mut self, discount_factor: f32) {

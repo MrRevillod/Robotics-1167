@@ -92,10 +92,10 @@ impl Map {
         self.states[grid_y][grid_x].r#type != StatusType::Wall
     }
 
-    pub fn get_random_valid_position(&self, rng: &mut impl rand::Rng) -> Vector2 {
+    pub fn get_random_valid_position(&self) -> Vector2 {
         loop {
-            let grid_x = rng.random_range(0..N_COLS);
-            let grid_y = rng.random_range(0..N_ROWS);
+            let grid_x = rand::random_range(0..N_COLS);
+            let grid_y = rand::random_range(0..N_ROWS);
 
             let position = Vector2::new(
                 grid_x as f32 * TILE_SIZE + TILE_SIZE / 2.0,
