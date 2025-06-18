@@ -1,6 +1,6 @@
 # Robotics INFO1167 - Proyectos de Simulación
 
-Este repositorio contiene dos proyectos de simulación robótica desarrollados en Rust para el curso INFO1167. Ambos proyectos utilizan el motor gráfico Raylib para visualización y diferentes algoritmos para el comportamiento de los robots.
+Este repositorio contiene proyectos de simulación robótica desarrollados en Rust. Los proyectos utilizan el motor gráfico Raylib para visualización y diferentes algoritmos para el comportamiento de los robots.
 
 ## 📁 Estructura del Proyecto
 
@@ -29,8 +29,8 @@ Simulación tridimensional donde robots autónomos se mueven en un estadio de ba
 ### Tecnologías
 
 - **Rust** con edición 2024
-- **Raylib 5.5.1** para renderizado 3D
-- **Rand 0.8.5** para comportamiento aleatorio
+- **Raylib** para renderizado 3D
+- **Rand** para comportamiento aleatorio
 
 ## 🤖 Markov-DP - Navegación Robótica con MDP
 
@@ -61,8 +61,8 @@ Implementación de un Proceso de Decisión de Markov (MDP) para resolver problem
 ### Tecnologías
 
 - **Rust** con edición 2024
-- **Raylib 5.5.1** para visualización 2D
-- **Plotters 0.3.7** para generación de gráficos analíticos
-- **Rand 0.9.1** para simulación estocástica
+- **Raylib** para visualización 2D
+- **Plotters** para generación de gráficos analíticos
+- **Rand** para simulación estocástica
 
 Los resultados analíticos se generan en la carpeta `analytics/` con gráficos de recompensas y proyección del rendimiento.
