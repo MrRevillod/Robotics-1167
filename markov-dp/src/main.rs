@@ -17,10 +17,10 @@ pub const DISCOUNT_FACTORS: [f32; 4] = [0.86, 0.90, 0.94, 0.98];
 pub const SUCCESS_PROBABILITIES: [f32; 4] = [0.5, 0.7, 0.8, 0.9];
 
 fn main() {
-    println!("🎯 MDP Robotics - Simulación Optimizada");
+    println!("🎯 MDP Robotics - Simulación");
     println!("=======================================\n");
 
-    println!("🚀 Ejecutando simulación optimizada...");
+    println!("🚀 Ejecutando simulación...");
     let start_time = std::time::Instant::now();
     let results = Core::run_simulation();
     let duration = start_time.elapsed();
@@ -36,9 +36,10 @@ fn main() {
 
     let (mut rlib, thread) = raylib::init()
         .size(800, 600)
-        .title("MDP Robotics - INFO1167 (Optimizado)")
+        .title("MDP Robotics - INFO1167")
         .msaa_4x()
         .vsync()
+        .log_level(TraceLogLevel::LOG_NONE)
         .build();
 
     rlib.set_target_fps(60);

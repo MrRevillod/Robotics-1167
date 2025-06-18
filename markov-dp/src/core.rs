@@ -39,14 +39,12 @@ impl Core {
     }
 
     pub fn run_simulation() -> Vec<Vec<Vec<f32>>> {
-        // Calcular la matriz de transición una sola vez
         let map = Map::new();
         let transition_matrix = Mdp::build_transition_matrix_static(&map);
 
         let mut results = vec![vec![vec![]; 4]; 4];
         let discount_factors = DISCOUNT_FACTORS.to_vec();
 
-        // Crear MDPs para cada discount factor (solo 4 en lugar de 16)
         let mut mdps = Vec::new();
         for &discount_factor in &discount_factors {
             let mut mdp = Mdp::new_with_transition_matrix(map.clone(), transition_matrix.clone());
@@ -54,22 +52,20 @@ impl Core {
             mdps.push(mdp);
         }
 
-        // Ahora ejecutar simulaciones reutilizando los MDPs
         for success_prob in 0..4 {
             for discount_factor in 0..4 {
-                // Crear un robot para esta combinación específica
                 let initial_position = map.get_random_valid_position();
                 let mut robot = Robot::new(initial_position, success_prob);
 
                 let mut simulation_steps = 0;
                 let mut rewards = vec![];
 
-                // Ejecutar simulación directamente sin crear un Core completo
                 while simulation_steps < 1000 {
                     robot.update(&mdps[discount_factor].get_max_policy(), &map);
 
                     simulation_steps += 1;
                     let robot_pos = robot.get_matricial_position();
+
                     rewards.push(map.states[robot_pos[0]][robot_pos[1]].reward);
 
                     if robot.get_position() == map.get_goal_position() {
