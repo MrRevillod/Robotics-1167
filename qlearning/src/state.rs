@@ -33,7 +33,10 @@ impl State {
             y: i as f32 * TILE_SIZE,
         };
 
-        let index = i * N_COLS + j;
+        let norm_x = position.x as usize / TILE_SIZE as usize;
+        let norm_y = position.y as usize / TILE_SIZE as usize;
+
+        let index = norm_y * N_COLS + norm_x;
 
         State {
             key,
@@ -47,12 +50,5 @@ impl State {
 
     pub fn draw(&self) {
         Raylib::draw_tile(self.key, self.position, self.color);
-    }
-
-    pub fn get_matricial_position(&self) -> [usize; 2] {
-        let norm_x = (self.position.x / TILE_SIZE) as usize;
-        let norm_y = (self.position.y / TILE_SIZE) as usize;
-
-        [norm_y, norm_x]
     }
 }

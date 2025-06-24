@@ -5,6 +5,6 @@ resolver = "2"
 members = [
     "basketbots",
     "markov-dp",
-    "mdp-qlearning",
+    "qlearning",
     "utils",
 ]

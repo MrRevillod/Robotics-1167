@@ -1,5 +1,5 @@
 [package]
-name = "mdp-qlearning"
+name = "qlearning"
 version = "0.1.0"
 edition = "2024"
 
